@@ -1,12 +1,12 @@
 // script.js
-let cookieCount = 0;
-let upgradeCount = 0;
-let autoClickerCount = 0;
-let autoClickerUpgradeCount = 0;
-let upgradeCost = 10;
-let autoClickerCost = 100;
-let autoClickerUpgradeCost = 200;
-let cookiesPerClick = 1;
+let cookieCount = parseInt(localStorage.getItem('cookieCount')) || 0;
+let upgradeCount = parseInt(localStorage.getItem('upgradeCount')) || 0;
+let autoClickerCount = parseInt(localStorage.getItem('autoClickerCount')) || 0;
+let autoClickerUpgradeCount = parseInt(localStorage.getItem('autoClickerUpgradeCount')) || 0;
+let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
+let autoClickerCost = parseInt(localStorage.getItem('autoClickerCost')) || 100;
+let autoClickerUpgradeCost = parseInt(localStorage.getItem('autoClickerUpgradeCost')) || 200;
+let cookiesPerClick = parseInt(localStorage.getItem('cookiesPerClick')) || 1;
 let autoClickerInterval;
 
 const cookieElement = document.getElementById('cookie');
@@ -19,10 +19,34 @@ const autoClickerCountElement = document.getElementById('auto-clicker-count');
 const autoClickerUpgradeCountElement = document.getElementById('auto-clicker-upgrade-count');
 const clickSound = document.getElementById('click-sound');
 
+// Обновление отображения данных на экране
+function updateDisplay() {
+    cookieCountElement.textContent = cookieCount;
+    upgradeCountElement.textContent = upgradeCount;
+    autoClickerCountElement.textContent = autoClickerCount;
+    autoClickerUpgradeCountElement.textContent = autoClickerUpgradeCount;
+    buyUpgradeButton.textContent = `Buy Upgrade (Cost: ${upgradeCost})`;
+    buyAutoClickerButton.textContent = `Buy Auto-Clicker (Cost: ${autoClickerCost})`;
+    buyAutoClickerUpgradeButton.textContent = `Upgrade Auto-Clicker (Cost: ${autoClickerUpgradeCost})`;
+}
+
+// Сохранение данных в localStorage
+function saveData() {
+    localStorage.setItem('cookieCount', cookieCount);
+    localStorage.setItem('upgradeCount', upgradeCount);
+    localStorage.setItem('autoClickerCount', autoClickerCount);
+    localStorage.setItem('autoClickerUpgradeCount', autoClickerUpgradeCount);
+    localStorage.setItem('upgradeCost', upgradeCost);
+    localStorage.setItem('autoClickerCost', autoClickerCost);
+    localStorage.setItem('autoClickerUpgradeCost', autoClickerUpgradeCost);
+    localStorage.setItem('cookiesPerClick', cookiesPerClick);
+}
+
 cookieElement.addEventListener('click', () => {
     cookieCount += cookiesPerClick;
     cookieCountElement.textContent = cookieCount;
     clickSound.play();
+    saveData();
 });
 
 buyUpgradeButton.addEventListener('click', () => {
@@ -32,9 +56,8 @@ buyUpgradeButton.addEventListener('click', () => {
         cookiesPerClick += 1;
         upgradeCost *= 2;
 
-        cookieCountElement.textContent = cookieCount;
-        upgradeCountElement.textContent = upgradeCount;
-        buyUpgradeButton.textContent = `Buy Upgrade (Cost: ${upgradeCost})`;
+        updateDisplay();
+        saveData();
     } else {
         alert('Not enough cookies!');
     }
@@ -46,14 +69,14 @@ buyAutoClickerButton.addEventListener('click', () => {
         autoClickerCount += 1;
         autoClickerCost *= 2;
 
-        cookieCountElement.textContent = cookieCount;
-        autoClickerCountElement.textContent = autoClickerCount;
-        buyAutoClickerButton.textContent = `Buy Auto-Clicker (Cost: ${autoClickerCost})`;
+        updateDisplay();
+        saveData();
 
         if (autoClickerCount === 1) {
             autoClickerInterval = setInterval(() => {
-                cookieCount += autoClickerCount;
+                cookieCount += autoClickerCount * (1 + autoClickerUpgradeCount);
                 cookieCountElement.textContent = cookieCount;
+                saveData();
             }, 1000);
         }
     } else {
@@ -67,18 +90,28 @@ buyAutoClickerUpgradeButton.addEventListener('click', () => {
         autoClickerUpgradeCount += 1;
         autoClickerUpgradeCost *= 2;
 
-        cookieCountElement.textContent = cookieCount;
-        autoClickerUpgradeCountElement.textContent = autoClickerUpgradeCount;
-        buyAutoClickerUpgradeButton.textContent = `Upgrade Auto-Clicker (Cost: ${autoClickerUpgradeCost})`;
+        updateDisplay();
+        saveData();
 
         if (autoClickerCount > 0) {
             clearInterval(autoClickerInterval);
             autoClickerInterval = setInterval(() => {
                 cookieCount += autoClickerCount * (1 + autoClickerUpgradeCount);
                 cookieCountElement.textContent = cookieCount;
+                saveData();
             }, 1000);
         }
     } else {
         alert('Not enough cookies!');
     }
 });
+
+updateDisplay();
+
+if (autoClickerCount > 0) {
+    autoClickerInterval = setInterval(() => {
+        cookieCount += autoClickerCount * (1 + autoClickerUpgradeCount);
+        cookieCountElement.textContent = cookieCount;
+        saveData();
+    }, 1000);
+}
